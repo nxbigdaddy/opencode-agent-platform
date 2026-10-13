@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: aigateway-postgres
+    environment:
+      POSTGRES_DB: aigateway
+      POSTGRES_USER: aigateway
+      POSTGRES_PASSWORD: YOUR_PASSWORD
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - aigateway-network
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: aigateway-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - aigateway-network
+
+  # OpenCode Server（外部部署，此处仅作网络配置参考）
+  # 注意：OpenCode Server 需要在宿主机或独立服务器上部署
+  # 因为其需要访问宿主机的工具链和文件系统
+
+networks:
+  aigateway-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

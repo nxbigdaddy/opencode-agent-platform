@@ -1,0 +1,65 @@
+2.3 多租户会话隔离机制
+表格
+项目类型	隔离方式
+Git 项目	基于根提交哈希（root commit hash）生成唯一项目 ID
+非 Git 项目	共享全局空间
+会话隔离	通过 session_id 实现，不同租户使用独立 ID 拥有专属编程空间
+物理隔离	可配置让不同租户会话绑定到不同物理文件夹
+
+
+系统核心模块划分
+模块 1：租户管理模块
+租户注册、隔离策略配置、资源配额管理
+模块 2：权限控制模块
+区分系统级权限与租户内权限
+支持角色自定义
+模块 3：API 网关模块
+租户路由、请求限流、身份校验
+模块 4：数据层模块
+支持共享表、独立 Schema 等多种隔离存储方案
+模块 5：OpenCode 集成模块
+通过独立 session_id 和 opencode.json 配置
+实现租户代码空间隔离
+五、OpenCode 预设指令标准化配置
+5.1 配置路径
+表格
+级别	存放位置
+项目级指令	项目根目录 .opencode/commands/
+全局指令	~/.config/opencode/commands/
+5.2 文件格式
+新建 Markdown 文件（如 send-weekly-report.md），包含：
+Frontmatter：定义 description、agent、model 等属性
+正文：编写提示词模板
+5.3 调用示例
+创建 send-weekly-report.md：
+markdown
+复制
+---
+description: "发送标准化周报邮件"
+agent: "build"
+model: "claude-3-5-sonnet"
+---
+
+读取当前目录下的 weekly_report.md 文件内容，调用系统终端的邮件发送命令，发送到 $1 邮箱，邮件主题固定为"[部门] 周工作总结"。
+调用方式：/send-weekly-report 领导邮箱
+5.4 标准化策略
+在全局配置中创建标准化命令（如 ERP 单据生成），固定提示词模板和工具调用流程
+所有租户继承该全局命令，禁止修改核心配置
+确保同一任务在所有租户环境下执行路径完全一致
+六、数据库隔离方案（SQL Server 不改原库）
+适用场景：已有 SQL Server ERP 数据库，不改变原表结构
+方案：行级安全策略（Row-Level Security, RLS）
+表格
+步骤	操作
+Step 1	给所有租户相关表添加 TenantId 列
+Step 2	创建内联表值函数，通过 SESSION_CONTEXT 获取当前租户 ID 进行数据过滤
+Step 3	创建安全策略，绑定函数和表
+Step 4	应用层在数据库连接时设置会话上下文的 TenantId
+效果：在数据库层强制隔离，无需修改原表结构和业务代码。
+
+
+关键设计原则总结
+标准化优先：企业环境中，访问 ERP、生成单据等任务正确路径只有一条，必须全局标准化
+可控优于自主：对话式控制比完全自主更适合生产环境，避免多路径执行带来的不确定性
+租户隔离：通过 session_id + 独立 Schema/RLS 实现数据与代码空间隔离
+零侵入集成：对现有 SQL Server ERP 数据库采用行级安全策略，不改原库结构

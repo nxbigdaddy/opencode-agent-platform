@@ -1,0 +1,14 @@
+[Unit]
+Description=OpenCode Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Environment="OPENCODE_SERVER_PASSWORD=YOUR_PASSWORD"
+ExecStart=/usr/local/bin/opencode serve --port 1776 --hostname 0.0.0.0 --cors '*'
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "aliyun": {
+      "name": "阿里云 - 通义千问",
+      "npm": "@ai-sdk/openai-compatible",
+      "models": {
+        "qwen3.6-plus": {
+          "name": "qwen3.6-plus",
+          "default": true
+        }
+      },
+      "options": {
+        "baseURL": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "apiKey": "YOUR_API_TOKEN"
+      }
+    }
+  }
+}
